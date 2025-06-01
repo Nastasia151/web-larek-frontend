@@ -12,7 +12,7 @@ export interface IProduct {
     category: string;
     image: string;
     description: string;
-}
+} 
 
 // interface IProductInBasket {
 //    title: string;
