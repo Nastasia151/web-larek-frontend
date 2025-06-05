@@ -1,8 +1,8 @@
 import { Component } from "../components/base/component";
 
-type ApiProductsResponse<T> = {
+export interface IApiProductsResponse {
     total: number;
-    items: T[];
+    items: IProduct[];
 }
 
 export interface IProduct {
@@ -14,13 +14,20 @@ export interface IProduct {
     description: string;
 } 
 
+export interface IProductsModel {
+    items: IProduct[];
+    getItem(id: string): IProduct;
+}
+
 // interface IProductInBasket {
 //    title: string;
 //    price: number | null;
 // }
 
-export interface IProductsApi {
-    getProducts: () => Promise<IProduct[]>
+export interface IBasketModel {
+    items: IProduct[];
+    totalSumm: number;
+    canCheckOut: boolean;
 }
 
 interface IPaymentForm {

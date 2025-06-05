@@ -1,35 +1,28 @@
 import { Component } from './components/base/component';
-import { IProduct } from './types/index'
+import { IProduct, IBasketModel } from './types/index'
 import './scss/styles.scss';
-import { ensureElement } from './utils/utils';
-import { EventEmitter } from './components/base/events';
+import { cloneTemplate, ensureElement } from './utils/utils';
+import { EventEmitter, IEvents } from './components/base/events';
+import { WebLarekAPI } from './components/ProductsApi';
+import { API_URL, CDN_URL } from './utils/constants';
+import { ProductsModel } from './components/model/products'
 
-// класс для хранения всех продуктов
-class ProductModel {
-    protected items: IProduct[] = [];  // - массив продуктов
+ 
 
-    constructor() {}  // - не принимает никаких параметров
+class BasketModel {
     
-    getItems(): IProduct[] {
-        return this.items
-    } // - вернуть список товаров
 
-    getItem(id: string): IProduct {
-        return this.items.find(item => item.id === id);
-    } // - вернуть товар по id
-
-    addItemInBasket(id: string) {} // - добавить в корзину
+    addItem(id: string) {} // - добавить в корзину
 
     deleteItemfromBasket(id: string) {} // - удалить товар из корзины
 
     getBasketItemsSumm(id: string) {} // - по id находим товары в корзине и считаем сумму заказа
 
-    setItems (){} //???
-
     counterItemsInBasket (id: string) {}  // кол-во продуктов, добавленных в корзину??
 
     getIndexItem (id: string) {} // вернуть порядковый номер товара в корзине
 }
+
 
 class UserContactsModel {
     constructor(){}
@@ -48,31 +41,39 @@ class UserContactsModel {
 }
 
 interface IPage {
-    productGallery: IProduct[];
-    basketCounter: number;
+    gallery: IProduct[];
+    counter: number;
 }
 
 class Page extends Component<IPage> {
    protected productsContainer: HTMLElement;
-   protected basketItems: HTMLElement;
+   protected basketCounter: HTMLElement;
+   protected pageWrapper: HTMLElement;
+   protected basketButton: HTMLElement;
 
-    constructor(container: HTMLElement) {
+    constructor(container: HTMLElement, protected events: IEvents) {
         super(container)
 
         this.productsContainer = ensureElement<HTMLElement>('.gallery', this.container);
-        this.basketItems = ensureElement<HTMLElement>('.header__basket-counter', this.container);
+        this.basketCounter = ensureElement<HTMLElement>('.header__basket-counter', this.container);
+        this.pageWrapper = ensureElement<HTMLElement>('.page__wrapper', this.container);
+        this.basketButton = ensureElement<HTMLButtonElement>('.header__basket', this.container)
+
+        this.basketButton.addEventListener('click', () => {
+			this.events.emit('open_basket');
+		});
     }
 
-    set productGallery(items: HTMLElement[]) {
-        this.productGallery.push(...items);
+    set gallery(items: HTMLElement[]) {
+        this.productsContainer.replaceChildren(...items);
     }
 
-    set basketCounter(value: number) {
-        this.setText(this.basketItems, value);
+    set counter(value: number) {
+        this.setText(this.basketCounter, value);
     }
 }
 
-class ProductPreview extends Component<IProduct> {
+class CardCatalog extends Component<IProduct> {
     protected productTitle: HTMLElement;
     protected productImage: HTMLImageElement;
     protected productPrice: HTMLElement;
@@ -80,7 +81,7 @@ class ProductPreview extends Component<IProduct> {
     protected productId: number;
 
     
-    constructor(protected readonly container: HTMLElement) {
+    constructor(protected readonly container: HTMLElement, items: IProduct, protected events: IEvents) {
         super(container);
         this.productTitle = ensureElement<HTMLElement>('.card__title', this.container);
         this.productImage = ensureElement<HTMLImageElement>('.card__image', this.container);
@@ -113,12 +114,12 @@ class ProductPreview extends Component<IProduct> {
     }
 }
 
-class ProductCard extends ProductPreview {
+class ProductCard extends Component<IProduct>{
     protected productDescription: HTMLElement;
     protected addButton: HTMLButtonElement;
     protected closeButton: HTMLButtonElement;
 
-    constructor(protected readonly container: HTMLElement) {
+    constructor(protected readonly container: HTMLElement, items: IProduct, protected events: IEvents) {
         super(container);
 
         this.productDescription = ensureElement<HTMLElement>('.card__text', this.container);
@@ -153,3 +154,46 @@ class BasketView extends Component<IBasketView> {
         this.basketItemIndex = ensureElement<HTMLElement>('.basket__item-index', this.container)
     }
 }
+const api = new WebLarekAPI(CDN_URL, API_URL);
+
+const events = new EventEmitter();
+const productModel = new ProductsModel(events);
+
+const itemTemplate = document.querySelector('#todo-item-template') as HTMLTemplateElement
+
+api.getProductList()
+  .then(data => 
+    productModel.setItems(data))
+  .catch((err) => console.error(err))
+
+//    events.on('products_update', () => {
+//      const itemsHTMLArray = productModel.getItems().map(item => new Item(cloneTemplate(itemTemplate), events).render(item))
+//      page.render({
+//          toDoList: itemsHTMLArray,
+//          tasksTotal: toDoModel.getTotal(),
+//         tasksDone: toDoModel.getDone()
+//     }
+//      )
+// })
+
+function createCardsFromProducts (products: IProduct[]): HTMLElement[] {
+		const cards: HTMLElement[] = [];
+		products.forEach((product) => {
+			const container = cloneTemplate<HTMLElement>('#card-catalog');
+			const card = new CardCatalog(container, product, this.events);
+			card.category = product.category;
+			card.title = product.title;
+			card.price = product.price;
+			card.image = product.image;
+			cards.push(container);
+		});
+
+		return cards;
+	}
+
+
+
+  function showCard(products: IProduct[]) {
+		this.page.catalog = this.createCardsFromProducts(products);
+	}
+
