@@ -6,21 +6,14 @@ import { EventEmitter, IEvents } from './components/base/events';
 import { WebLarekAPI } from './components/ProductsApi';
 import { API_URL, CDN_URL } from './utils/constants';
 import { ProductsModel } from './components/model/products'
+import { Page } from './components/view/page';
 
  
 
 class BasketModel {
     
 
-    addItem(id: string) {} // - добавить в корзину
-
-    deleteItemfromBasket(id: string) {} // - удалить товар из корзины
-
-    getBasketItemsSumm(id: string) {} // - по id находим товары в корзине и считаем сумму заказа
-
-    counterItemsInBasket (id: string) {}  // кол-во продуктов, добавленных в корзину??
-
-    getIndexItem (id: string) {} // вернуть порядковый номер товара в корзине
+    
 }
 
 
@@ -39,46 +32,23 @@ class UserContactsModel {
 
     // toggleButton
 }
-
-interface IPage {
-    gallery: IProduct[];
-    counter: number;
+interface IProductCard {
+	title: string;
+	description?: string;
+	image: string;
+	price: string;
+	category: string;
 }
 
-class Page extends Component<IPage> {
-   protected productsContainer: HTMLElement;
-   protected basketCounter: HTMLElement;
-   protected pageWrapper: HTMLElement;
-   protected basketButton: HTMLElement;
-
-    constructor(container: HTMLElement, protected events: IEvents) {
-        super(container)
-
-        this.productsContainer = ensureElement<HTMLElement>('.gallery', this.container);
-        this.basketCounter = ensureElement<HTMLElement>('.header__basket-counter', this.container);
-        this.pageWrapper = ensureElement<HTMLElement>('.page__wrapper', this.container);
-        this.basketButton = ensureElement<HTMLButtonElement>('.header__basket', this.container)
-
-        this.basketButton.addEventListener('click', () => {
-			this.events.emit('open_basket');
-		});
-    }
-
-    set gallery(items: HTMLElement[]) {
-        this.productsContainer.replaceChildren(...items);
-    }
-
-    set counter(value: number) {
-        this.setText(this.basketCounter, value);
-    }
-}
-
-class CardCatalog extends Component<IProduct> {
+class ProductCard extends Component<IProductCard> {
     protected productTitle: HTMLElement;
     protected productImage: HTMLImageElement;
     protected productPrice: HTMLElement;
     protected productCategory: HTMLElement;
     protected productId: number;
+    protected productDescription: HTMLElement;
+    protected addButton: HTMLButtonElement;
+    protected productAdded: boolean;
 
     
     constructor(protected readonly container: HTMLElement, items: IProduct, protected events: IEvents) {
@@ -87,6 +57,8 @@ class CardCatalog extends Component<IProduct> {
         this.productImage = ensureElement<HTMLImageElement>('.card__image', this.container);
         this.productPrice = ensureElement<HTMLElement>('.card__price', this.container);
         this.productCategory = ensureElement<HTMLElement>('.card__category', this.container);
+        // this.productDescription = ensureElement<HTMLElement>('.card__text', this.container);
+        // this.addButton = ensureElement<HTMLButtonElement>('.card__button', this.container);
     }
 
     set title(value: string) {
@@ -112,26 +84,10 @@ class CardCatalog extends Component<IProduct> {
     set id(value: number) {
         this.productId = value;
     }
-}
 
-class ProductCard extends Component<IProduct>{
-    protected productDescription: HTMLElement;
-    protected addButton: HTMLButtonElement;
-    protected closeButton: HTMLButtonElement;
-
-    constructor(protected readonly container: HTMLElement, items: IProduct, protected events: IEvents) {
-        super(container);
-
-        this.productDescription = ensureElement<HTMLElement>('.card__text', this.container);
-        this.addButton = ensureElement<HTMLButtonElement>('.card__button', this.container);
-        this.closeButton = ensureElement<HTMLButtonElement>('.modal__close', this.container);
-    }
-
-    set description(value: string) {
+     set description(value: string) {
         this.setText(this.productDescription, value);
     }
-
-    // управление кнопкой
 }
 
 interface IBasketView extends IProduct{
@@ -156,15 +112,58 @@ class BasketView extends Component<IBasketView> {
 }
 const api = new WebLarekAPI(CDN_URL, API_URL);
 
-const events = new EventEmitter();
-const productModel = new ProductsModel(events);
+export interface IEventEmiter {
+	emit: (event: string, data: unknown) => void;
+}
 
+class Presenter {
+    private productsModel: ProductsModel;
+    private page;
+
+    constructor (private events: IEventEmiter & IEvents)  {
+        
+        this.productsModel = new ProductsModel(this.events);
+        this.page = new Page(document.querySelector('.page__wrapper'), this.events);
+    }
+
+    updateCatalog(data: IProduct[]) {
+	    this.productsModel.setItems(data);
+}
+
+    showCard(products: IProduct[]) {
+		this.page.gallery = this.createCardsFromProducts(products);
+	}
+
+    createCardsFromProducts (products: IProduct[]): HTMLElement[] {
+		const cards: HTMLElement[] = [];
+		products.forEach((product) => {
+			const container = cloneTemplate<HTMLElement>('#card-catalog');
+			const card = new ProductCard(container, product, this.events);
+			card.category = product.category;
+			card.title = product.title;
+			card.price = product.price;
+			card.image = product.image;
+			cards.push(container);
+		});
+
+		return cards;
+	}
+}
+
+const eventss = new EventEmitter();
+
+const presenter = new Presenter(eventss)
 const itemTemplate = document.querySelector('#todo-item-template') as HTMLTemplateElement
 
 api.getProductList()
   .then(data => 
-    productModel.setItems(data))
+    presenter.updateCatalog(data))
   .catch((err) => console.error(err))
+
+
+eventss.on('products_update', (data: IProduct[]) => {
+	presenter.showCard(data);
+});
 
 //    events.on('products_update', () => {
 //      const itemsHTMLArray = productModel.getItems().map(item => new Item(cloneTemplate(itemTemplate), events).render(item))
@@ -175,25 +174,4 @@ api.getProductList()
 //     }
 //      )
 // })
-
-function createCardsFromProducts (products: IProduct[]): HTMLElement[] {
-		const cards: HTMLElement[] = [];
-		products.forEach((product) => {
-			const container = cloneTemplate<HTMLElement>('#card-catalog');
-			const card = new CardCatalog(container, product, this.events);
-			card.category = product.category;
-			card.title = product.title;
-			card.price = product.price;
-			card.image = product.image;
-			cards.push(container);
-		});
-
-		return cards;
-	}
-
-
-
-  function showCard(products: IProduct[]) {
-		this.page.catalog = this.createCardsFromProducts(products);
-	}
 

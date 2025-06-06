@@ -1,8 +1,13 @@
 import { IProduct } from "../../types";
 import { IEvents } from "../base/events";
 
-export class ProductsModel {
-    protected items: IProduct[] = [];  // - массив продуктов
+export interface IProductsModel {
+	items: IProduct[];
+	getItem(id: string): IProduct;
+}
+
+export class ProductsModel implements IProductsModel {
+    items: IProduct[] = [];  // - массив продуктов
 
     constructor(protected events: IEvents) {
         this.items = [];
@@ -20,4 +25,4 @@ export class ProductsModel {
         this.items = items;
         this.events.emit('products_update', items);
     } //???
-}  
+}
