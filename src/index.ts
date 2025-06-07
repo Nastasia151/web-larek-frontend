@@ -34,64 +34,119 @@ class UserContactsModel {
 
 
 
-interface IBasketList{
-    productsList: IProduct[];
+// interface IBasketList{
+//     productsList: IProduct[];
+//     index: number;
+//     title: string;
+//     price: string;
+
+// }
+
+// class B extends Component<IBasketList> {
+//     protected productsContainer: HTMLElement;
+//     protected productIndex: HTMLElement;
+//     protected productTitle: HTMLElement;
+//     protected productPrice: HTMLElement;
+//     protected deleteProductButton: HTMLButtonElement;
+    
+
+//     constructor(container: HTMLElement, protected events: IEvents) {
+//         super(container);
+
+//         this.productsContainer = ensureElement<HTMLElement>('#card-basket', this.container);
+//         this.productIndex = ensureElement<HTMLElement>('.basket__item-index', this.container);
+//         this.productTitle = ensureElement<HTMLElement>('.card__title', this.container);
+//         this.productPrice = ensureElement<HTMLElement>('.card__price', this.container);
+//         this.deleteProductButton = ensureElement<HTMLButtonElement>('.basket__item-delete', this.container);
+    
+//         this.deleteProductButton.addEventListener('click', () => {
+//             this.events.emit('basketList: delete');
+//         });
+//     }
+
+//     set productList(items: HTMLElement[]) {
+//         this.productsContainer.replaceChildren(...items);
+//     }
+
+//     set index(value: number) {
+//         this.setText(this.productIndex, value)
+//     }
+
+//     set title(value: string) {
+//         this.setText(this.productTitle, value);
+//     }
+
+//     set price(value: string) {
+//         this.setText(this.productPrice, `${value} синапсисов`);
+//     }
+// } 
+
+// interface IBasketView {
+//     basketList: IBasketList[];
+//     totalPrice: number;
+//     locked: boolean;
+// }
+
+// class B extends Component<IBasketView> {
+//     private itemsList: HTMLElement;
+//     private basketPrice: HTMLElement;
+//     private orderButton: HTMLButtonElement;
+
+
+//     constructor(container: HTMLElement, protected events: IEvents) {
+//         super(container);
+
+//         this.itemsList = ensureElement<HTMLElement>('.basket__list', this.container);
+//         this.basketPrice = ensureElement<HTMLElement>('.basket__price', this.container);
+//         this.orderButton = ensureElement<HTMLButtonElement>('.basket__button', this.container);
+//     }
+
+// //     
+
+// set basketList(items: IBasketList[]) {
+//     if (!items || items.length === 0) {
+//         this.itemsList.replaceChildren(
+//             createElement<HTMLElement>('p', {
+//                 textContent: 'Корзина пуста',
+//             })
+//         );
+//         return;
+//     }
+
+//     const elements = items.map((item, idx) => {
+//         const container = cloneTemplate<HTMLElement>('#card-basket');
+//         const basketItem = new BasketList(container, this.events);
+        
+//         basketItem.index = idx + 1;
+//         basketItem.title = item.title;
+//         basketItem.price = item.price;
+
+//         return basketItem.render();
+//     });
+
+//     this.itemsList.replaceChildren(...elements);
+// }
+
+
+//     set totalPrice(value: number) {
+//         this.setText(this.basketPrice, `${value} синапсисов`);
+//     }
+
+//     set locked(items: IBasketList[]) {
+//     this.setDisabled(this.orderButton, items.length === 0);
+// }
+// }
+
+interface IBasketItem {
     index: number;
     title: string;
-    price: string;
-
+    price: number;
+    id: string;
 }
-
-class BasketList extends Component<IBasketList> {
-    protected productsContainer: HTMLElement;
-    protected productIndex: HTMLElement;
-    protected productTitle: HTMLElement;
-    protected productPrice: HTMLElement;
-    protected deleteProductButton: HTMLButtonElement;
-    
-
-    constructor(container: HTMLElement, protected events: IEvents) {
-        super(container);
-
-        this.productsContainer = ensureElement<HTMLElement>('#card-basket', this.container);
-        this.productIndex = ensureElement<HTMLElement>('.basket__item-index', this.container);
-        this.productTitle = ensureElement<HTMLElement>('.card__title', this.container);
-        this.productPrice = ensureElement<HTMLElement>('.card__price', this.container);
-        this.deleteProductButton = ensureElement<HTMLButtonElement>('.basket__item-delete', this.container);
-    
-        this.deleteProductButton.addEventListener('click', () => {
-            this.events.emit('basketList: delete');
-        });
-    }
-
-    set productList(items: HTMLElement[]) {
-        this.productsContainer.replaceChildren(...items);
-    }
-
-    set index(value: number) {
-        this.setText(this.productIndex, value)
-    }
-
-    set title(value: string) {
-        this.setText(this.productTitle, value);
-    }
-
-    set price(value: string) {
-        this.setText(this.productPrice, `${value} синапсисов`);
-    }
-} 
-
-interface IBasketView {
-    basketList: IBasketList[];
-    totalPrice: number;
-    locked: boolean;
-}
-
-class BasketView extends Component<IBasketView> {
+class Basket extends Component<IBasketItem> {
     private itemsList: HTMLElement;
     private basketPrice: HTMLElement;
     private orderButton: HTMLButtonElement;
-
 
     constructor(container: HTMLElement, protected events: IEvents) {
         super(container);
@@ -101,39 +156,59 @@ class BasketView extends Component<IBasketView> {
         this.orderButton = ensureElement<HTMLButtonElement>('.basket__button', this.container);
     }
 
-    set basketList(items: IBasketList[]) {
-        if (items.length > 0) {
-        // Для каждого товара создаём элемент BasketList и добавляем в DOM
-        items.forEach((item, idx) => {
-            // Клонируем шаблон товара в корзине
-            const container = cloneTemplate<HTMLElement>('#card-basket');
-            const basketItem = new BasketList(container, this.events);
+    // Единый метод для управления элементами корзины
+    set basketList(items: IBasketItem[]) {
+        if (!items || items.length === 0) {
+            this.showEmptyState();
+            return;
+        }
 
-            // Устанавливаем данные товара
-            basketItem.index = idx + 1;
-            basketItem.title = item.title;
-            basketItem.price = item.price;
+        const elements = items.map((item) => 
+            this.createBasketItem(item)
+        );
 
-            // Добавляем элемент в список
-            this.itemsList.replaceChildren(basketItem.render());
-        }) 
-    } else {
-        this.itemsList.replaceChildren(
-				createElement<HTMLElement>('p', {
-					textContent: 'Корзина пуста',
-			})
-		);
+        this.itemsList.replaceChildren(...elements);
+        this.updateOrderButton(items.length > 0);
     }
-}
+
+    private createBasketItem(item: IBasketItem): HTMLElement {
+        const container = cloneTemplate<HTMLElement>('#card-basket');
+        
+        // Установка данных элемента
+        this.setText(ensureElement('.basket__item-index', container), item.index);
+        this.setText(ensureElement('.card__title', container), item.title);
+        this.setText(
+            ensureElement('.card__price', container), 
+            `${item.price} синапсов` // Форматирование при отображении
+        );
+
+        // Обработка удаления
+         const deleteButton = ensureElement<HTMLButtonElement>('.basket__item-delete', container);
+         deleteButton.addEventListener('click', () => {
+             this.events.emit('basket: delete', item); // item.index-1
+         });
+
+        return container;
+    }
+
+    private showEmptyState() {
+        this.itemsList.replaceChildren(
+            createElement<HTMLElement>('p', {
+                textContent: 'Корзина пуста',
+            })
+        );
+        this.updateOrderButton(false);
+    }
 
     set totalPrice(value: number) {
-        this.setText(this.basketPrice, `${value} синапсисов`);
+        this.setText(this.basketPrice, `${value} синапсов`);
     }
 
-    set locked(items: IBasketList[]) {
-    this.setDisabled(this.orderButton, items.length === 0);
+    private updateOrderButton(state: boolean) {
+        this.setDisabled(this.orderButton, !state);
+    }
 }
-}
+
 
 // protected orderSumm: HTMLElement;
 //     protected makeOrder: HTMLButtonElement;
@@ -148,8 +223,7 @@ class Presenter {
     private page;
     private modal;
     private basketModel: BasketModel;
-    private basket;
-    private basketView: BasketView;
+    private basketView;
 
 
     constructor (private events: IEventEmiter & IEvents)  {
@@ -160,7 +234,7 @@ class Presenter {
         this.basketModel = new BasketModel(this.events);
 
         const basketContainer = cloneTemplate<HTMLElement>('#basket');
-        this.basket = new BasketView(basketContainer, this.events);
+        this.basketView = new Basket(basketContainer, this.events);
 
 
     }
@@ -208,25 +282,24 @@ class Presenter {
 		this.page.locked = false;
 	}
 
+    
     openBasket() {
-    const itemIds: string[] = this.basketModel.getItems();
-    const productsInBasket: IProduct[] = itemIds
-        .map((id) => this.productsModel.getItem(id))
-        .filter((product): product is IProduct => product !== undefined);
+    const products = this.basketModel.getItems()
+        .map(id => this.productsModel.getItem(id))
+        .filter(Boolean);
 
-    const basketList: IBasketList[] = productsInBasket.map((product, idx) => ({
+    this.basketView.basketList = products.map((product, idx) => ({
+        id: product.id,
         index: idx + 1,
         title: product.title,
-        price: `${product.price} синапсисов`, // Исправлено
-        productsList: productsInBasket
+        price: product.price // Используем числовое значение
     }));
+    
+    this.basketView.totalPrice = products.reduce((sum, p) => sum + p.price, 0);
 
-    this.basketView.basketList = basketList;
-    this.basketView.totalPrice = this.basketModel.basketTotal(productsInBasket);
-    this.basketView.locked = basketList;
-
-    this.modal.render({ modalContent: this.basketView.render() });
+    this.modal.render({modalContent: this.basketView.render()});
 }
+
 
     addInBasket(product: IProduct) {
 		this.basketModel.addItem(product.id);
@@ -270,10 +343,12 @@ eventss.on('modal:close', () => {
 
 eventss.on('product: add', (product: IProduct) => {
     presenter.addInBasket(product);
+    
 });
 
-eventss.on('basketList: delete', (product: IProduct) => {
+eventss.on('basket: delete', (product: IProduct) => {
     presenter.deleteFromBasket(product);
+    presenter.openBasket();
 })
 
 eventss.on('basket: changed', () => {
