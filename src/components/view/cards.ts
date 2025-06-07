@@ -66,12 +66,16 @@ export class PreviewCard extends GalleryCard {
     protected addButton: HTMLButtonElement;
     protected productAdded: boolean;
 
-    constructor(protected readonly container: HTMLElement, items: IProduct, protected events: IEvents) {
-        super(container, items, events);
+    constructor(protected readonly container: HTMLElement, item: IProduct, protected events: IEvents) {
+        super(container, item, events);
         this.productDescription = ensureElement<HTMLElement>('.card__text', this.container);
         this.addButton = ensureElement<HTMLButtonElement>('.card__button', this.container);
 
-        this.addButton.addEventListener('click')
+        if (this.addButton) {
+			this.addButton.addEventListener('click', () => {
+					this.events.emit('product: add', item);
+			});
+		}
     }
 
     set description(value: string) {

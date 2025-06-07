@@ -131,12 +131,8 @@ class BasketView extends Component<IBasketView> {
     }
 
     set locked(items: IBasketList[]) {
-        if(items.length) {
-            this.setDisabled(this.orderButton, false);
-        } else {
-            this.setDisabled(this.orderButton, true);
-        }
-    }
+    this.setDisabled(this.orderButton, items.length === 0);
+}
 }
 
 // protected orderSumm: HTMLElement;
@@ -153,7 +149,8 @@ class Presenter {
     private modal;
     private basketModel: BasketModel;
     private basket;
-	
+    private basketView: BasketView;
+
 
     constructor (private events: IEventEmiter & IEvents)  {
         
@@ -211,6 +208,26 @@ class Presenter {
 		this.page.locked = false;
 	}
 
+    openBasket() {
+    const itemIds: string[] = this.basketModel.getItems();
+    const productsInBasket: IProduct[] = itemIds
+        .map((id) => this.productsModel.getItem(id))
+        .filter((product): product is IProduct => product !== undefined);
+
+    const basketList: IBasketList[] = productsInBasket.map((product, idx) => ({
+        index: idx + 1,
+        title: product.title,
+        price: `${product.price} синапсисов`, // Исправлено
+        productsList: productsInBasket
+    }));
+
+    this.basketView.basketList = basketList;
+    this.basketView.totalPrice = this.basketModel.basketTotal(productsInBasket);
+    this.basketView.locked = basketList;
+
+    this.modal.render({ modalContent: this.basketView.render() });
+}
+
     addInBasket(product: IProduct) {
 		this.basketModel.addItem(product.id);
 	}
@@ -222,6 +239,7 @@ class Presenter {
 	UpdateBasketCount() {
 		this.page.counter = this.basketModel.counterItemsInBasket();
 	}
+
 }
 
 const eventss = new EventEmitter();
@@ -250,6 +268,21 @@ eventss.on('modal:close', () => {
 	presenter.scrollUnlock();
 });
 
+eventss.on('product: add', (product: IProduct) => {
+    presenter.addInBasket(product);
+});
+
+eventss.on('basketList: delete', (product: IProduct) => {
+    presenter.deleteFromBasket(product);
+})
+
+eventss.on('basket: changed', () => {
+	presenter.UpdateBasketCount();
+});
+
+eventss.on('basket: open', () => {
+    presenter.openBasket();
+});
 
 //    events.on('products_update', () => {
 //      const itemsHTMLArray = productModel.getItems().map(item => new Item(cloneTemplate(itemTemplate), events).render(item))
