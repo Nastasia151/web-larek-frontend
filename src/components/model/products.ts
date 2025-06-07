@@ -23,6 +23,6 @@ export class ProductsModel implements IProductsModel {
 
     setItems (items: IProduct[]){
         this.items = items;
-        this.events.emit('products_update', items);
+        this.events.emit('products: update', items);
     } //???
 }
