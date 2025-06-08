@@ -5,6 +5,8 @@ export interface IApiProductsResponse {
     items: IProduct[];
 }
 
+export type paymentType = 'online' | 'onReceipt';
+
 export interface IProduct {
     id: string;
     title: string;
@@ -33,9 +35,8 @@ export interface IBasketModel {
 interface IPaymentForm {
     
 }
-
-interface IContact {
-    paymentType: 'online' | 'onReceipt' | null;
+export interface IContact {
+    payment: paymentType;
     address: string;
     email: string;
     phone: string;

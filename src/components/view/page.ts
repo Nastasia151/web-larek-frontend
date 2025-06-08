@@ -24,7 +24,7 @@ export class Page extends Component<IPage> {
         this.openBasketButton = ensureElement<HTMLButtonElement>('.header__basket', this.container)
 
         this.openBasketButton.addEventListener('click', () => {
-            this.events.emit('basket: open');
+            this.events.emit('basket:open');
         });
     }
 

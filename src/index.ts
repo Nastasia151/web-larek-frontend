@@ -1,221 +1,42 @@
 import { Component } from './components/base/component';
-import { IProduct, IBasketModel } from './types/index'
+import { IProduct, IBasketModel, paymentType } from './types/index'
 import './scss/styles.scss';
-import { cloneTemplate, createElement, ensureElement } from './utils/utils';
+import { cloneTemplate, createElement, ensureAllElements, ensureElement } from './utils/utils';
 import { EventEmitter, IEvents } from './components/base/events';
 import { WebLarekAPI } from './components/ProductsApi';
-import { API_URL, CDN_URL } from './utils/constants';
+import { API_URL, CDN_URL, settings } from './utils/constants';
 import { ProductsModel } from './components/model/products'
 import { Page } from './components/view/page';
 import { Modal } from './components/view/modal';
 import { GalleryCard, PreviewCard } from './components/view/cards';
 import { BasketModel } from './components/model/basketModel';
+import { Basket } from './components/view/basket';
+import { IContact } from './types/index';
+import { UserContactsModel } from './components/model/UserContactsModel';
+import { Form } from './components/base/form';
+import { Payment } from './components/view/payment';
+import { ContactForm } from './components/view/contacts';
 
- 
-
-
-
-
-class UserContactsModel {
-    constructor(){}
-
-    choosePayment(paymentType: 'online' | 'onReceipt'){}
-
-    setAddress(address: string){}  // - отправить адрес
-
-    setEmail(email: string) {} // - отправить email
-
-    setPhone(phone: string) {} // - отправить номер телефона
-
-    // isValid () {}
-
-    // toggleButton
-}
-
-
-
-// interface IBasketList{
-//     productsList: IProduct[];
-//     index: number;
-//     title: string;
-//     price: string;
-
-// }
-
-// class B extends Component<IBasketList> {
-//     protected productsContainer: HTMLElement;
-//     protected productIndex: HTMLElement;
-//     protected productTitle: HTMLElement;
-//     protected productPrice: HTMLElement;
-//     protected deleteProductButton: HTMLButtonElement;
-    
-
-//     constructor(container: HTMLElement, protected events: IEvents) {
-//         super(container);
-
-//         this.productsContainer = ensureElement<HTMLElement>('#card-basket', this.container);
-//         this.productIndex = ensureElement<HTMLElement>('.basket__item-index', this.container);
-//         this.productTitle = ensureElement<HTMLElement>('.card__title', this.container);
-//         this.productPrice = ensureElement<HTMLElement>('.card__price', this.container);
-//         this.deleteProductButton = ensureElement<HTMLButtonElement>('.basket__item-delete', this.container);
-    
-//         this.deleteProductButton.addEventListener('click', () => {
-//             this.events.emit('basketList: delete');
-//         });
-//     }
-
-//     set productList(items: HTMLElement[]) {
-//         this.productsContainer.replaceChildren(...items);
-//     }
-
-//     set index(value: number) {
-//         this.setText(this.productIndex, value)
-//     }
-
-//     set title(value: string) {
-//         this.setText(this.productTitle, value);
-//     }
-
-//     set price(value: string) {
-//         this.setText(this.productPrice, `${value} синапсисов`);
-//     }
-// } 
-
-// interface IBasketView {
-//     basketList: IBasketList[];
-//     totalPrice: number;
-//     locked: boolean;
-// }
-
-// class B extends Component<IBasketView> {
-//     private itemsList: HTMLElement;
-//     private basketPrice: HTMLElement;
-//     private orderButton: HTMLButtonElement;
-
-
-//     constructor(container: HTMLElement, protected events: IEvents) {
-//         super(container);
-
-//         this.itemsList = ensureElement<HTMLElement>('.basket__list', this.container);
-//         this.basketPrice = ensureElement<HTMLElement>('.basket__price', this.container);
-//         this.orderButton = ensureElement<HTMLButtonElement>('.basket__button', this.container);
-//     }
-
-// //     
-
-// set basketList(items: IBasketList[]) {
-//     if (!items || items.length === 0) {
-//         this.itemsList.replaceChildren(
-//             createElement<HTMLElement>('p', {
-//                 textContent: 'Корзина пуста',
-//             })
-//         );
-//         return;
-//     }
-
-//     const elements = items.map((item, idx) => {
-//         const container = cloneTemplate<HTMLElement>('#card-basket');
-//         const basketItem = new BasketList(container, this.events);
-        
-//         basketItem.index = idx + 1;
-//         basketItem.title = item.title;
-//         basketItem.price = item.price;
-
-//         return basketItem.render();
-//     });
-
-//     this.itemsList.replaceChildren(...elements);
-// }
-
-
-//     set totalPrice(value: number) {
-//         this.setText(this.basketPrice, `${value} синапсисов`);
-//     }
-
-//     set locked(items: IBasketList[]) {
-//     this.setDisabled(this.orderButton, items.length === 0);
-// }
-// }
-
-interface IBasketItem {
-    index: number;
-    title: string;
-    price: number;
-    id: string;
-}
-class Basket extends Component<IBasketItem> {
-    private itemsList: HTMLElement;
-    private basketPrice: HTMLElement;
-    private orderButton: HTMLButtonElement;
-
-    constructor(container: HTMLElement, protected events: IEvents) {
-        super(container);
-
-        this.itemsList = ensureElement<HTMLElement>('.basket__list', this.container);
-        this.basketPrice = ensureElement<HTMLElement>('.basket__price', this.container);
-        this.orderButton = ensureElement<HTMLButtonElement>('.basket__button', this.container);
-    }
-
-    // Единый метод для управления элементами корзины
-    set basketList(items: IBasketItem[]) {
-        if (!items || items.length === 0) {
-            this.showEmptyState();
-            return;
-        }
-
-        const elements = items.map((item) => 
-            this.createBasketItem(item)
-        );
-
-        this.itemsList.replaceChildren(...elements);
-        this.updateOrderButton(items.length > 0);
-    }
-
-    private createBasketItem(item: IBasketItem): HTMLElement {
-        const container = cloneTemplate<HTMLElement>('#card-basket');
-        
-        // Установка данных элемента
-        this.setText(ensureElement('.basket__item-index', container), item.index);
-        this.setText(ensureElement('.card__title', container), item.title);
-        this.setText(
-            ensureElement('.card__price', container), 
-            `${item.price} синапсов` // Форматирование при отображении
-        );
-
-        // Обработка удаления
-         const deleteButton = ensureElement<HTMLButtonElement>('.basket__item-delete', container);
-         deleteButton.addEventListener('click', () => {
-             this.events.emit('basket: delete', item); // item.index-1
-         });
-
-        return container;
-    }
-
-    private showEmptyState() {
-        this.itemsList.replaceChildren(
-            createElement<HTMLElement>('p', {
-                textContent: 'Корзина пуста',
-            })
-        );
-        this.updateOrderButton(false);
-    }
-
-    set totalPrice(value: number) {
-        this.setText(this.basketPrice, `${value} синапсов`);
-    }
-
-    private updateOrderButton(state: boolean) {
-        this.setDisabled(this.orderButton, !state);
-    }
-}
-
-
-// protected orderSumm: HTMLElement;
-//     protected makeOrder: HTMLButtonElement;
 const api = new WebLarekAPI(CDN_URL, API_URL);
 
 export interface IEventEmiter {
 	emit: (event: string, data: unknown) => void;
+}
+
+interface ISuccessOrder {
+    totalPrice: number;
+}
+
+class SuccessOrder extends Component<ISuccessOrder> {
+    protected total: HTMLElement;
+    protected close: HTMLButtonElement;
+
+    constructor(container: HTMLElement, protected events: IEvents) {
+        super(container);
+
+        this.total = ensureElement<HTMLElement>('.order-success__description', this.container);
+        this.close = ensureElement<HTMLButtonElement>('.order-success__close', this.container);
+    }
 }
 
 class Presenter {
@@ -224,6 +45,9 @@ class Presenter {
     private modal;
     private basketModel: BasketModel;
     private basketView;
+    private userContactsModel: UserContactsModel;
+    private paymentForm;
+    private contactForm;
 
 
     constructor (private events: IEventEmiter & IEvents)  {
@@ -232,6 +56,11 @@ class Presenter {
         this.page = new Page(document.querySelector('.page__wrapper'), this.events);
         this.modal = new Modal(document.querySelector('.modal'), this.events)
         this.basketModel = new BasketModel(this.events);
+        this.userContactsModel = new UserContactsModel();
+        const paymentFormContainer = cloneTemplate<HTMLFormElement>('#order');
+        this.paymentForm = new Payment(paymentFormContainer, this.events);
+        const contactFormContainer = cloneTemplate<HTMLFormElement>('#contacts');
+        this.contactForm = new ContactForm(contactFormContainer, this.events);
 
         const basketContainer = cloneTemplate<HTMLElement>('#basket');
         this.basketView = new Basket(basketContainer, this.events);
@@ -292,7 +121,7 @@ class Presenter {
         id: product.id,
         index: idx + 1,
         title: product.title,
-        price: product.price // Используем числовое значение
+        price: product.price 
     }));
     
     this.basketView.totalPrice = products.reduce((sum, p) => sum + p.price, 0);
@@ -313,12 +142,82 @@ class Presenter {
 		this.page.counter = this.basketModel.counterItemsInBasket();
 	}
 
+    openPayForm() {
+    const validation = this.userContactsModel.isValidPaymentForm();
+    this.modal.render({
+        modalContent: this.paymentForm.render({
+            payment: this.userContactsModel.payment,
+            address: this.userContactsModel.address,
+            valid: validation.isValid,
+            errors: [validation.message],
+        }),
+    });
+}
+
+updatePaymentInfo(data: paymentType) {
+    this.userContactsModel.payment = data;
+    const validation = this.userContactsModel.isValidPaymentForm();
+    this.paymentForm.payment = this.userContactsModel.payment;
+    this.paymentForm.valid = validation.isValid;
+    this.paymentForm.errors = validation.message;
+}
+
+updateAddressInfo(data: string) {
+    this.userContactsModel.address = data;
+    const validation = this.userContactsModel.isValidPaymentForm();
+    this.paymentForm.valid = validation.isValid;
+    this.paymentForm.errors = validation.message;
+}
+
+    openContactForm() {
+        const validation = this.userContactsModel.isValidContact();
+        this.modal.render({
+            modalContent: this.contactForm.render({
+                email: this.userContactsModel.email,
+                phone: this.userContactsModel.phone,
+                valid: validation.isValid,
+                errors: [validation.message]
+            })
+        });
+    }
+
+    // Обработчики обновления полей
+    updateEmailInfo(data: string) {
+        this.userContactsModel.email = data;
+        const validation = this.userContactsModel.isValidContact();
+        this.contactForm.valid = validation.isValid;
+        this.contactForm.errors = validation.message;
+    }
+
+    updatePhoneInfo(data: string) {
+        this.userContactsModel.phone = data;
+        const validation = this.userContactsModel.isValidContact();
+        this.contactForm.valid = validation.isValid;
+        this.contactForm.errors = validation.message;
+    }
 }
 
 const eventss = new EventEmitter();
 
 const presenter = new Presenter(eventss)
 
+eventss.on('payment:change', (data: { payment: paymentType }) => {
+	presenter.updatePaymentInfo(data.payment);
+});
+eventss.on('order.address:change', (data: {field: string, value: string}) => {
+    presenter.updateAddressInfo(data.value);});
+
+eventss.on('order:submit', () => {
+    presenter.openContactForm();
+});
+
+eventss.on('contacts.email:change', (data: { value: string }) => {
+    presenter.updateEmailInfo(data.value);
+});
+
+eventss.on('contacts.phone:change', (data: { value: string }) => {
+    presenter.updatePhoneInfo(data.value);
+});
 
 api.getProductList()
   .then(data => 
@@ -326,11 +225,11 @@ api.getProductList()
   .catch((err) => console.error(err))
 
 
-eventss.on('products: update', (data: IProduct[]) => {
+eventss.on('products:update', (data: IProduct[]) => {
 	presenter.showCard(data);
 });
 
-eventss.on('card: open', (card: IProduct) => {
+eventss.on('card:open', (card: IProduct) => {
 	presenter.openCardPreview(card);
 });
 
@@ -341,22 +240,26 @@ eventss.on('modal:close', () => {
 	presenter.scrollUnlock();
 });
 
-eventss.on('product: add', (product: IProduct) => {
+eventss.on('product:add', (product: IProduct) => {
     presenter.addInBasket(product);
     
 });
 
-eventss.on('basket: delete', (product: IProduct) => {
+eventss.on('basket:delete', (product: IProduct) => {
     presenter.deleteFromBasket(product);
     presenter.openBasket();
 })
 
-eventss.on('basket: changed', () => {
+eventss.on('basket:changed', () => {
 	presenter.UpdateBasketCount();
 });
 
-eventss.on('basket: open', () => {
+eventss.on('basket:open', () => {
     presenter.openBasket();
+});
+
+eventss.on('order:open', () => {
+	presenter.openPayForm();
 });
 
 //    events.on('products_update', () => {

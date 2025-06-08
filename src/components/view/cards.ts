@@ -30,7 +30,7 @@ export class GalleryCard extends Component<IProductCard> {
         this.openPreviewButton = this.container as HTMLButtonElement;
 
         this.openPreviewButton.addEventListener('click', () => {
-            this.events.emit('card: open', items);
+            this.events.emit('card:open', items);
         });
     }
 
@@ -73,7 +73,7 @@ export class PreviewCard extends GalleryCard {
 
         if (this.addButton) {
 			this.addButton.addEventListener('click', () => {
-					this.events.emit('product: add', item);
+					this.events.emit('product:add', item);
 			});
 		}
     }
