@@ -48,25 +48,17 @@ export class Presenter {
         this.productsModel.setItems(data);
 }
 
-    showCard(products: IProduct[]) {
-        this.page.gallery = this.setProductsGallery(products);
-    }
-    
-    // подумать как переписать
-    setProductsGallery (items: IProduct[]): HTMLElement[] {
-        const cards: HTMLElement[] = [];
-        items.forEach((item) => {
-            const container = cloneTemplate<HTMLElement>('#card-catalog');
-            const card = new GalleryCard(container, item, this.events);
-            card.category = item.category;
-            card.title = item.title;
-            card.price = item.price;
-            card.image = item.image;
-            cards.push(container);
-        });
-
-        return cards;
-    }
+    createCard(products: IProduct[]) {
+    this.page.gallery = products.map((item) => {
+        const container = cloneTemplate<HTMLElement>('#card-catalog');
+        const card = new GalleryCard(container, item, this.events);
+        card.category = item.category;
+        card.title = item.title;
+        card.price = item.price;
+        card.image = item.image;
+        return container;
+    });
+}
 
     openCardPreview (item: IProduct) {
         const container = cloneTemplate<HTMLElement>('#card-preview');
@@ -87,7 +79,6 @@ export class Presenter {
     scrollUnlock() {
         this.page.locked = false;
     }
-
     
     openBasket() {
     const products = this.basketModel.getItems()
@@ -118,7 +109,7 @@ export class Presenter {
         this.page.counter = this.basketModel.counterItemsInBasket();
     }
 
-    openPayForm() {
+    openPaymentForm() {
     const validation = this.userContactsModel.isValidPaymentForm();
     this.modal.render({
         modalContent: this.paymentForm.render({
@@ -130,7 +121,7 @@ export class Presenter {
     });
 }
 
-updatePaymentInfo(data: paymentType) {
+updatePayment(data: paymentType) {
     this.userContactsModel.payment = data;
     const validation = this.userContactsModel.isValidPaymentForm();
     this.paymentForm.payment = this.userContactsModel.payment;
@@ -138,7 +129,7 @@ updatePaymentInfo(data: paymentType) {
     this.paymentForm.errors = validation.message;
 }
 
-updateAddressInfo(data: string) {
+updateAddress(data: string) {
     this.userContactsModel.address = data;
     const validation = this.userContactsModel.isValidPaymentForm();
     this.paymentForm.valid = validation.isValid;
@@ -158,21 +149,21 @@ updateAddressInfo(data: string) {
     }
 
     // Обработчики обновления полей
-    updateEmailInfo(data: string) {
+    updateEmail(data: string) {
         this.userContactsModel.email = data;
         const validation = this.userContactsModel.isValidContact();
         this.contactForm.valid = validation.isValid;
         this.contactForm.errors = validation.message;
     }
 
-    updatePhoneInfo(data: string) {
+    updatePhone(data: string) {
         this.userContactsModel.phone = data;
         const validation = this.userContactsModel.isValidContact();
         this.contactForm.valid = validation.isValid;
         this.contactForm.errors = validation.message;
     }
 
-        openSuccessOrder(totalPrice: number) {
+    openSuccessOrder(totalPrice: number) {
     this.successOrderView.totalPrice = totalPrice;
     
     this.successOrderView.close.addEventListener('click', () => {

@@ -38,25 +38,25 @@ events.on('order:success', (data: { totalPrice: number }) => {
 });
 
 events.on('payment:change', (data: { payment: paymentType }) => {
-	presenter.updatePaymentInfo(data.payment);
+	presenter.updatePayment(data.payment);
 });
 events.on('order.address:change', (data: {field: string, value: string}) => {
-    presenter.updateAddressInfo(data.value);});
+    presenter.updateAddress(data.value);});
 
 events.on('order:submit', () => {
     presenter.openContactForm();
 });
 
 events.on('contacts.email:change', (data: { value: string }) => {
-    presenter.updateEmailInfo(data.value);
+    presenter.updateEmail(data.value);
 });
 
 events.on('contacts.phone:change', (data: { value: string }) => {
-    presenter.updatePhoneInfo(data.value);
+    presenter.updatePhone(data.value);
 });
 
 events.on('products:update', (data: IProduct[]) => {
-	presenter.showCard(data);
+	presenter.createCard(data);
 });
 
 events.on('card:open', (card: IProduct) => {
@@ -89,7 +89,7 @@ events.on('basket:open', () => {
 });
 
 events.on('order:open', () => {
-	presenter.openPayForm();
+	presenter.openPaymentForm();
 });
 
 events.on('contacts:submit', () => {
