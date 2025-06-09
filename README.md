@@ -158,7 +158,7 @@ interface IOrder {
 
 ### Слой данных
 
-### class ProductsModel – модель данных галереи товаров
+#### class ProductsModel – модель данных галереи товаров
   - Свойства
 	  - items: IProduct[] – массив продуктов
   - Методы
@@ -167,7 +167,7 @@ interface IOrder {
 	  - getItem(id: string): IProduct – вернуть товар по id
 	  - setItems (items: IProduct[]) – записать список товаров
 
-### class BasketModel – модель данных для управления списком товаров корзины
+#### class BasketModel – модель данных для управления списком товаров корзины
   - Свойства
 	  -protected items: string[];
   - Методы
@@ -183,7 +183,7 @@ interface IOrder {
     - setItems (items: string[]) – записать список товаров в корзине
     - clearBasket() – очистить корзину
 
-### class UserContactsModel – модель данных для хранения и обработки данных покупателя
+#### class UserContactsModel – модель данных для хранения и обработки данных покупателя
   - Свойства
 	  - private userPayment: paymentType;
     - private userAddress: string;
