@@ -21,20 +21,12 @@ export interface IProductsModel {
     getItem(id: string): IProduct;
 }
 
-// interface IProductInBasket {
-//    title: string;
-//    price: number | null;
-// }
-
 export interface IBasketModel {
     items: IProduct[];
     totalSumm: number;
     canCheckOut: boolean;
 }
 
-interface IPaymentForm {
-    
-}
 export interface IContact {
     payment: paymentType;
     address: string;
@@ -42,4 +34,20 @@ export interface IContact {
     phone: string;
 }
 
-// model 
+export interface IValidationResult {
+    isValid: boolean;
+    message: string;
+}
+
+export interface IOrderResult {
+    id: string;
+}
+
+export interface IOrder {
+    items: string[];
+    total: number;
+    payment: paymentType;
+    address: string;
+	email: string;
+	phone: string;
+}

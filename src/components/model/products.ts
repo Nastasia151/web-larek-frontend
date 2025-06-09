@@ -21,7 +21,7 @@ export class ProductsModel implements IProductsModel {
         return this.items.find(item => item.id === id);
     } // - вернуть товар по id
 
-    setItems (items: IProduct[]){
+    setItems (items: IProduct[]) {
         this.items = items;
         this.events.emit('products:update', items);
     } //???

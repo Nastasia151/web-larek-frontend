@@ -1,11 +1,9 @@
-import { IContact, paymentType } from "../../types";
+import { IContact, IValidationResult, paymentType } from "../../types";
 import { settings } from "../../utils/constants";
 
-export interface IValidationResult {
-    isValid: boolean;
-    message: string;
-}
 
+
+// дописать навешивание класса
 export class UserContactsModel implements IContact {
     private userPayment: paymentType;
     private userAddress: string;
@@ -119,9 +117,9 @@ export class UserContactsModel implements IContact {
     }
 
     clearContact() {
-        this.userPayment = "online";
+         this.userPayment = "online";
          this.userAddress = '';
-        this.userEmail = '';
+         this.userEmail = '';
          this.userPhone = '';
     }
 }

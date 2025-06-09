@@ -34,9 +34,7 @@ export class BasketModel {
 
     basketTotal(items: IProduct[]) {
         this.events.emit('basket:changed');
-        return items.reduce((total, item) => {
-            return total + item.price;
-    }, 0);
+        return items.reduce((total, item) => total + item.price, 0);
     } // - считаем сумму заказа
 
     counterItemsInBasket (): number {
@@ -55,7 +53,7 @@ export class BasketModel {
         this.items = [];
     }
 
-    setItems (items: string[]){
+    setItems (items: string[]) {
         this.items = items;
         this.events.emit('products:update', items);
     }

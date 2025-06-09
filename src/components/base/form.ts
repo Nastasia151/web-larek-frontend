@@ -8,9 +8,9 @@ interface IFormState {
 }
 
 export class Form<T> extends Component<IFormState> {
-    setText(_errors: HTMLElement, value: string) {
-        throw new Error("Method not implemented.");
-    }
+    // setText(_errors: HTMLElement, value: string) {
+    //     throw new Error("Method not implemented.");
+    // }
     protected _submit: HTMLButtonElement;
     protected _errors: HTMLElement;
 

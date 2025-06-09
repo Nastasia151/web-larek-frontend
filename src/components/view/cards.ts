@@ -82,6 +82,15 @@ export class PreviewCard extends GalleryCard {
         this.setText(this.productDescription, value);
     }
 
+    set price(value: number | null) {
+        if (value === null) {
+            this.setHidden(this.addButton);
+        } else {
+            this.setVisible(this.addButton);
+            super.price = value;
+        }
+    }
+
     set addedInBasket (value: boolean) {
         this.productAdded = value;
         if (value) {
